@@ -184,7 +184,7 @@ void server(int pipeFilho1[], int pipeFilho2[])
 		printf("Server > Client 2: %s\n", buffer2.valor);
 		write(writefd2, &buffer2, sizeof(buffer2));
 
-		if (rodada > 1)
+		if (rodada > 5)
 		{
 			break;
 		}
