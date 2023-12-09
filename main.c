@@ -162,12 +162,12 @@ void server(int pipeFilho1[], int pipeFilho2[])
 
 		strcpy(buffer1.tipo, TIPO_JOGAR);
 		strcpy(buffer1.valor, "\0");
-		printf("Server > Client 1: %s\n", buffer1.valor);
+		printf("Server > Client 1: %s\n", buffer1.tipo);
 		write(writefd1, &buffer1, sizeof(buffer1));
 
 		strcpy(buffer2.tipo, TIPO_JOGAR);
 		strcpy(buffer2.valor, "\0");
-		printf("Server > Client 2: %s\n", buffer2.valor);
+		printf("Server > Client 2: %s\n", buffer2.tipo);
 		write(writefd2, &buffer2, sizeof(buffer2));
 
 		read(readfd1, &buffer1, sizeof(Mensagem));
