@@ -48,45 +48,45 @@ int main()
 	// Processo pai
 	if (descritorFilho1 > 0 && descritorFilho2 > 0)
 	{
-		close(pipePaiParaFilho1[0]); // fecha leitura no pipePaiParaFilho1
-		close(pipeFilho1ParaPai[1]); // fecha escrita no pipeFilho1ParaPai
-		close(pipePaiParaFilho2[0]); // fecha leitura no pipePaiParaFilho2
-		close(pipeFilho2ParaPai[1]); // fecha escrita no pipeFilho2ParaPai
+		close(pipePaiParaFilho1[0]);
+		close(pipeFilho1ParaPai[1]);
+		close(pipePaiParaFilho2[0]);
+		close(pipeFilho2ParaPai[1]);
 
 		int pipeFilho1[2] = {pipeFilho1ParaPai[0], pipePaiParaFilho1[1]};
 		int pipeFilho2[2] = {pipeFilho2ParaPai[0], pipePaiParaFilho2[1]};
 		server(pipeFilho1, pipeFilho2);
 
-		close(pipePaiParaFilho1[1]); // fecha escrita no pipePaiParaFilho1
-		close(pipeFilho1ParaPai[0]); // fecha leitura no pipeFilho1ParaPai
-		close(pipePaiParaFilho2[1]); // fecha escrita no pipePaiParaFilho2
-		close(pipeFilho2ParaPai[0]); // fecha leitura no pipeFilho2ParaPai
+		close(pipePaiParaFilho1[1]);
+		close(pipeFilho1ParaPai[0]);
+		close(pipePaiParaFilho2[1]);
+		close(pipeFilho2ParaPai[0]);
 		exit(0);
 	}
 
 	// Processo filho 1
 	if (descritorFilho1 == 0)
 	{
-		close(pipePaiParaFilho1[1]); // fecha escrita no pipePaiParaFilho1
-		close(pipeFilho1ParaPai[0]); // fecha leitura no pipeFilho1ParaPai
+		close(pipePaiParaFilho1[1]);
+		close(pipeFilho1ParaPai[0]);
 
 		client("1", pipePaiParaFilho1[0], pipeFilho1ParaPai[1]);
 
-		close(pipePaiParaFilho1[0]); // fecha leitura no pipePaiParaFilho1
-		close(pipeFilho1ParaPai[1]); // fecha escrita no pipeFilho1ParaPai
+		close(pipePaiParaFilho1[0]);
+		close(pipeFilho1ParaPai[1]);
 		exit(0);
 	}
 
 	// Processo filho 2
 	if (descritorFilho2 == 0)
 	{
-		close(pipePaiParaFilho2[1]); // fecha escrita no pipePaiParaFilho2
-		close(pipeFilho2ParaPai[0]); // fecha leitura no pipeFilho2ParaPai
+		close(pipePaiParaFilho2[1]);
+		close(pipeFilho2ParaPai[0]);
 
 		client("2", pipePaiParaFilho2[0], pipeFilho2ParaPai[1]);
 
-		close(pipePaiParaFilho2[0]); // fecha leitura no pipePaiParaFilho2
-		close(pipeFilho2ParaPai[1]); // fecha escrita no pipeFilho2ParaPai
+		close(pipePaiParaFilho2[0]);
+		close(pipeFilho2ParaPai[1]);
 		exit(0);
 	}
 
