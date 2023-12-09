@@ -5,14 +5,25 @@
 #include <time.h>
 
 #define BUFFER_SIZE 1024
-#define COMANDO_JOGAR "jogar"
+#define TIPO_JOGAR "jogar"
+#define TIPO_JOGADA "resposta"
+#define TIPO_RESULTADO "resultado"
 #define JOGADA_PEDRA "pedra"
 #define JOGADA_PAPEL "papel"
 #define JOGADA_TESOURA "tesoura"
+#define RESULTADO_DERROTA "derrota"
+#define RESULTADO_EMPATE "empate"
+#define RESULTADO_VITORIA "vitoria"
+
+typedef struct _Mensagem
+{
+	char tipo[BUFFER_SIZE];
+	char valor[BUFFER_SIZE];
+} Mensagem;
 
 void client(char *name, int readfd, int writefd);
 void server(int pipeFilho1[], int pipeFilho2[]);
-void calcular_resultado(char *resposta1, char *resposta2, char **resultado1, char **resultado2);
+void calcular_resultado(Mensagem *resposta1, Mensagem *resposta2);
 
 int main()
 {
@@ -90,34 +101,41 @@ int main()
  **/
 void client(char *name, int readfd, int writefd)
 {
-	char buffer[BUFFER_SIZE] = "\0";
+	Mensagem buffer;
 
 	while (1)
 	{
-		read(readfd, buffer, BUFFER_SIZE);
-		if (strcmp(buffer, COMANDO_JOGAR) == 0)
+		read(readfd, &buffer, sizeof(Mensagem));
+		if (strcmp(buffer.tipo, TIPO_JOGAR) == 0)
 		{
-			printf("Client %s: jogando...\n", name);
+			strcpy(buffer.tipo, TIPO_JOGADA);
 
 			srand(time(NULL) ^ (getpid() << 16));
 			int jogada = rand() % 3;
 			switch (jogada)
 			{
 			case 0:
-				strcpy(buffer, JOGADA_PEDRA);
+				strcpy(buffer.valor, JOGADA_PEDRA);
 				break;
 			case 1:
-				strcpy(buffer, JOGADA_PAPEL);
+				strcpy(buffer.valor, JOGADA_PAPEL);
 				break;
 			case 2:
-				strcpy(buffer, JOGADA_TESOURA);
+				strcpy(buffer.valor, JOGADA_TESOURA);
 				break;
 			}
 
-			printf("Client %s: jogada %s\n", name, buffer);
-			write(writefd, buffer, strlen(buffer) + 1);
+			write(writefd, &buffer, sizeof(buffer));
 		}
-		// TODO implementar recebimento de resultado do jogo
+		else if (strcmp(buffer.tipo, TIPO_RESULTADO) == 0)
+		{
+			if (strcmp(buffer.valor, RESULTADO_VITORIA) == 0)
+				printf("Client %s: %s\n", name, RESULTADO_VITORIA);
+			else if (strcmp(buffer.valor, RESULTADO_DERROTA) == 0)
+				printf("Client %s: %s\n", name, RESULTADO_DERROTA);
+			else
+				printf("Client %s: %s\n", name, RESULTADO_EMPATE);
+		}
 	}
 }
 
@@ -134,32 +152,37 @@ void server(int pipeFilho1[], int pipeFilho2[])
 	int readfd2 = pipeFilho2[0];
 	int writefd2 = pipeFilho2[1];
 
-	char buffer1[BUFFER_SIZE] = "\0";
-	char buffer2[BUFFER_SIZE] = "\0";
-
-	char resultado1[BUFFER_SIZE] = "\0";
-	char resultado2[BUFFER_SIZE] = "\0";
+	Mensagem buffer1;
+	Mensagem buffer2;
 
 	int rodada = 1;
 	while (1)
 	{
 		printf("Rodada: %d\n", rodada++);
 
-		strcpy(buffer1, COMANDO_JOGAR);
-		printf("Server > Client 1: %s\n", buffer1);
-		write(writefd1, buffer1, strlen(buffer1) + 1);
+		strcpy(buffer1.tipo, TIPO_JOGAR);
+		strcpy(buffer1.valor, "\0");
+		printf("Server > Client 1: %s\n", buffer1.valor);
+		write(writefd1, &buffer1, sizeof(buffer1));
 
-		strcpy(buffer2, COMANDO_JOGAR);
-		printf("Server > Client 2: %s\n", buffer2);
-		write(writefd2, buffer2, strlen(buffer2) + 1);
+		strcpy(buffer2.tipo, TIPO_JOGAR);
+		strcpy(buffer2.valor, "\0");
+		printf("Server > Client 2: %s\n", buffer2.valor);
+		write(writefd2, &buffer2, sizeof(buffer2));
 
-		read(readfd1, buffer1, BUFFER_SIZE);
-		printf("Client 1 > Server: %s\n", buffer1);
+		read(readfd1, &buffer1, sizeof(Mensagem));
+		printf("Client 1 > Server: %s\n", buffer1.valor);
 
-		read(readfd2, buffer2, BUFFER_SIZE);
-		printf("Client 2 > Server: %s\n", buffer2);
+		read(readfd2, &buffer2, sizeof(Mensagem));
+		printf("Client 2 > Server: %s\n", buffer2.valor);
 
-		calcular_resultado(buffer1, buffer2, &resultado1, &resultado2);
+		calcular_resultado(&buffer1, &buffer2);
+
+		printf("Server > Client 1: %s\n", buffer1.valor);
+		write(writefd1, &buffer1, sizeof(buffer1));
+
+		printf("Server > Client 2: %s\n", buffer2.valor);
+		write(writefd2, &buffer2, sizeof(buffer2));
 
 		if (rodada > 1)
 		{
@@ -168,48 +191,51 @@ void server(int pipeFilho1[], int pipeFilho2[])
 	}
 }
 
-void calcular_resultado(char *resposta1, char *resposta2, char **resultado1, char **resultado2)
+void calcular_resultado(Mensagem *mensagem1, Mensagem *mensagem2)
 {
-	if (strcmp(resposta1, resposta2) == 0)
+	strcpy(mensagem1->tipo, TIPO_RESULTADO);
+	strcpy(mensagem2->tipo, TIPO_RESULTADO);
+
+	if (strcmp(mensagem1->valor, mensagem2->valor) == 0)
 	{
-		strcpy(resultado1, RESULTADO_EMPATE);
-		strcpy(resultado2, RESULTADO_EMPATE);
+		strcpy(mensagem1->valor, RESULTADO_EMPATE);
+		strcpy(mensagem2->valor, RESULTADO_EMPATE);
 		printf("Server: Empate!\n");
 	}
-	else if (strcmp(resposta1, JOGADA_PEDRA) == 0 && strcmp(resposta2, JOGADA_TESOURA) == 0)
+	else if (strcmp(mensagem1->valor, JOGADA_PEDRA) == 0 && strcmp(mensagem2->valor, JOGADA_TESOURA) == 0)
 	{
-		strcpy(resultado1, RESULTADO_VITORIA);
-		strcpy(resultado2, RESULTADO_DERROTA);
+		strcpy(mensagem1->valor, RESULTADO_VITORIA);
+		strcpy(mensagem2->valor, RESULTADO_DERROTA);
 		printf("Server: Pedra quebra tesoura. Client 1 venceu!\n");
 	}
-	else if (strcmp(resposta1, JOGADA_TESOURA) == 0 && strcmp(resposta2, JOGADA_PEDRA) == 0)
+	else if (strcmp(mensagem1->valor, JOGADA_TESOURA) == 0 && strcmp(mensagem2->valor, JOGADA_PEDRA) == 0)
 	{
-		strcpy(resultado1, RESULTADO_DERROTA);
-		strcpy(resultado2, RESULTADO_VITORIA);
+		strcpy(mensagem1->valor, RESULTADO_DERROTA);
+		strcpy(mensagem2->valor, RESULTADO_VITORIA);
 		printf("Server: Pedra quebra tesoura. Client 2 venceu!\n");
 	}
-	else if (strcmp(resposta1, JOGADA_PAPEL) == 0 && strcmp(resposta2, JOGADA_PEDRA) == 0)
+	else if (strcmp(mensagem1->valor, JOGADA_PAPEL) == 0 && strcmp(mensagem2->valor, JOGADA_PEDRA) == 0)
 	{
-		strcpy(resultado1, RESULTADO_VITORIA);
-		strcpy(resultado2, RESULTADO_DERROTA);
+		strcpy(mensagem1->valor, RESULTADO_VITORIA);
+		strcpy(mensagem2->valor, RESULTADO_DERROTA);
 		printf("Server: Papel embrulha pedra. Client 1 venceu!\n");
 	}
-	else if (strcmp(resposta1, JOGADA_PEDRA) == 0 && strcmp(resposta2, JOGADA_PAPEL) == 0)
+	else if (strcmp(mensagem1->valor, JOGADA_PEDRA) == 0 && strcmp(mensagem2->valor, JOGADA_PAPEL) == 0)
 	{
-		strcpy(resultado1, RESULTADO_DERROTA);
-		strcpy(resultado2, RESULTADO_VITORIA);
+		strcpy(mensagem1->valor, RESULTADO_DERROTA);
+		strcpy(mensagem2->valor, RESULTADO_VITORIA);
 		printf("Server: Papel embrulha pedra. Client 2 venceu!\n");
 	}
-	else if (strcmp(resposta1, JOGADA_TESOURA) == 0 && strcmp(resposta2, JOGADA_PAPEL) == 0)
+	else if (strcmp(mensagem1->valor, JOGADA_TESOURA) == 0 && strcmp(mensagem2->valor, JOGADA_PAPEL) == 0)
 	{
-		strcpy(resultado1, RESULTADO_VITORIA);
-		strcpy(resultado2, RESULTADO_DERROTA);
+		strcpy(mensagem1->valor, RESULTADO_VITORIA);
+		strcpy(mensagem2->valor, RESULTADO_DERROTA);
 		printf("Server: Tesoura corta papel. Client 1 venceu!\n");
 	}
-	else if (strcmp(resposta1, JOGADA_PAPEL) == 0 && strcmp(resposta2, JOGADA_TESOURA) == 0)
+	else if (strcmp(mensagem1->valor, JOGADA_PAPEL) == 0 && strcmp(mensagem2->valor, JOGADA_TESOURA) == 0)
 	{
-		strcpy(resultado1, RESULTADO_DERROTA);
-		strcpy(resultado2, RESULTADO_VITORIA);
+		strcpy(mensagem1->valor, RESULTADO_DERROTA);
+		strcpy(mensagem2->valor, RESULTADO_VITORIA);
 		printf("Server: Tesoura corta papel. Client 2 venceu!\n");
 	}
 }
