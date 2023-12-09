@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define MAXBUFF 1024
+#define BUFFER_SIZE 1024
 
 void client(char *name, int readfd, int writefd);
 void server(int pipeFilho1[], int pipeFilho2[]);
@@ -83,16 +83,16 @@ int main()
  **/
 void client(char *name, int readfd, int writefd)
 {
-	char buff[MAXBUFF];
+	char buffer[BUFFER_SIZE];
 
 	while (1)
 	{
 		printf(" \n Client->");
-		gets(buff);
-		write(writefd, buff, 10);
+		gets(buffer);
+		write(writefd, buffer, 10);
 
-		read(readfd, buff, 10);
-		printf(" \n Client <- %s", buff);
+		read(readfd, buffer, 10);
+		printf(" \n Client <- %s", buffer);
 	}
 }
 
@@ -104,15 +104,15 @@ void client(char *name, int readfd, int writefd)
  **/
 void server(int pipeFilho1[], int pipeFilho2[])
 {
-	char buff[MAXBUFF];
+	char buffer[BUFFER_SIZE];
 
 	while (1)
 	{
-		read(readfd, buff, 10);
-		printf(" \n Server<- %s", buff);
+		read(readfd, buffer, 10);
+		printf(" \n Server<- %s", buffer);
 
 		printf(" \n Server->");
-		gets(buff);
-		write(writefd, buff, 10);
+		gets(buffer);
+		write(writefd, buffer, 10);
 	}
 }
