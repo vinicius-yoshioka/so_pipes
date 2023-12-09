@@ -155,7 +155,34 @@ void server(int pipeFilho1[], int pipeFilho2[])
 		read(readfd2, buffer2, BUFFER_SIZE);
 		printf("Client 2 > Server: %s\n", buffer2);
 
-		// TODO implementa resultado do jogo
+		if (strcmp(buffer1, buffer2) == 0)
+		{
+			printf("Empate!\n");
+		}
+		else if (strcmp(buffer1, JOGADA_PEDRA) == 0 && strcmp(buffer2, JOGADA_TESOURA) == 0)
+		{
+			printf("Pedra quebra tesoura. Client 1 venceu!\n");
+		}
+		else if (strcmp(buffer1, JOGADA_TESOURA) == 0 && strcmp(buffer2, JOGADA_PEDRA) == 0)
+		{
+			printf("Pedra quebra tesoura. Client 2 venceu!\n");
+		}
+		else if (strcmp(buffer1, JOGADA_PAPEL) == 0 && strcmp(buffer2, JOGADA_PEDRA) == 0)
+		{
+			printf("Papel embrulha pedra. Client 1 venceu!\n");
+		}
+		else if (strcmp(buffer1, JOGADA_PEDRA) == 0 && strcmp(buffer2, JOGADA_PAPEL) == 0)
+		{
+			printf("Papel embrulha pedra. Client 2 venceu!\n");
+		}
+		else if (strcmp(buffer1, JOGADA_TESOURA) == 0 && strcmp(buffer2, JOGADA_PAPEL) == 0)
+		{
+			printf("Tesoura corta papel. Client 1 venceu!\n");
+		}
+		else if (strcmp(buffer1, JOGADA_PAPEL) == 0 && strcmp(buffer2, JOGADA_TESOURA) == 0)
+		{
+			printf("Tesoura corta papel. Client 2 venceu!\n");
+		}
 
 		if (rodada > 1)
 		{
