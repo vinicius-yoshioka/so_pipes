@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #define BUFFER_SIZE 1024
+#define COMANDO_JOGAR "jogar"
 
 void client(char *name, int readfd, int writefd);
 void server(int pipeFilho1[], int pipeFilho2[]);
@@ -83,16 +84,20 @@ int main()
  **/
 void client(char *name, int readfd, int writefd)
 {
-	char buffer[BUFFER_SIZE];
+	char buffer[BUFFER_SIZE] = "\0";
 
 	while (1)
 	{
-		printf(" \n Client->");
-		gets(buffer);
-		write(writefd, buffer, 10);
+		read(readfd, buffer, BUFFER_SIZE);
+		if (strcmp(buffer, COMANDO_JOGAR) == 0)
+		{
+			printf("Client %s: jogando...\n", name);
 
-		read(readfd, buffer, 10);
-		printf(" \n Client <- %s", buffer);
+			// TODO implementar jogada
+
+			printf("Client %s: jogada %s\n", name, buffer);
+			write(writefd, buffer, strlen(buffer) + 1);
+		}
 	}
 }
 
@@ -104,15 +109,38 @@ void client(char *name, int readfd, int writefd)
  **/
 void server(int pipeFilho1[], int pipeFilho2[])
 {
-	char buffer[BUFFER_SIZE];
+	int readfd1 = pipeFilho1[0];
+	int writefd1 = pipeFilho1[1];
+	int readfd2 = pipeFilho2[0];
+	int writefd2 = pipeFilho2[1];
 
+	char buffer1[BUFFER_SIZE] = "\0";
+	char buffer2[BUFFER_SIZE] = "\0";
+
+	int rodada = 1;
 	while (1)
 	{
-		read(readfd, buffer, 10);
-		printf(" \n Server<- %s", buffer);
+		printf("Rodada: %d\n", rodada++);
 
-		printf(" \n Server->");
-		gets(buffer);
-		write(writefd, buffer, 10);
+		strcpy(buffer1, COMANDO_JOGAR);
+		printf("Server > Client 1: %s\n", buffer1);
+		write(writefd1, buffer1, strlen(buffer1) + 1);
+
+		strcpy(buffer2, COMANDO_JOGAR);
+		printf("Server > Client 2: %s\n", buffer2);
+		write(writefd2, buffer2, strlen(buffer2) + 1);
+
+		read(readfd1, buffer1, BUFFER_SIZE);
+		printf("Client 1 > Server: %s\n", buffer1);
+
+		read(readfd2, buffer2, BUFFER_SIZE);
+		printf("Client 2 > Server: %s\n", buffer2);
+
+		// TODO implementa resultado do jogo
+
+		if (rodada > 3)
+		{
+			break;
+		}
 	}
 }
