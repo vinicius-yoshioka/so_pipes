@@ -8,6 +8,7 @@
 #define TIPO_JOGAR "jogar"
 #define TIPO_JOGADA "resposta"
 #define TIPO_RESULTADO "resultado"
+#define TIPO_SAIR "sair"
 #define JOGADA_PEDRA "pedra"
 #define JOGADA_PAPEL "papel"
 #define JOGADA_TESOURA "tesoura"
@@ -136,6 +137,12 @@ void client(char *name, int readfd, int writefd)
 			else
 				printf("Client %s: %s\n", name, RESULTADO_EMPATE);
 		}
+		else if (strcmp(buffer.tipo, TIPO_SAIR) == 0)
+		{
+			printf("Client %s: saindo...\n", name);
+			exit(0);
+			break;
+		}
 	}
 }
 
@@ -186,6 +193,15 @@ void server(int pipeFilho1[], int pipeFilho2[])
 
 		if (rodada > 5)
 		{
+			strcpy(buffer1.tipo, TIPO_SAIR);
+			strcpy(buffer1.valor, "\0");
+			printf("Server > Client 1: %s\n", buffer1.tipo);
+			write(writefd1, &buffer1, sizeof(buffer1));
+
+			strcpy(buffer2.tipo, TIPO_SAIR);
+			strcpy(buffer2.valor, "\0");
+			printf("Server > Client 2: %s\n", buffer2.tipo);
+			write(writefd2, &buffer2, sizeof(buffer2));
 			break;
 		}
 	}
