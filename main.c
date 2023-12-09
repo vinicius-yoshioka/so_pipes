@@ -1,9 +1,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <time.h>
 
 #define BUFFER_SIZE 1024
 #define COMANDO_JOGAR "jogar"
+#define JOGADA_PEDRA "pedra"
+#define JOGADA_PAPEL "papel"
+#define JOGADA_TESOURA "tesoura"
 
 void client(char *name, int readfd, int writefd);
 void server(int pipeFilho1[], int pipeFilho2[]);
@@ -93,11 +98,25 @@ void client(char *name, int readfd, int writefd)
 		{
 			printf("Client %s: jogando...\n", name);
 
-			// TODO implementar jogada
+			srand(time(NULL) ^ (getpid() << 16));
+			int jogada = rand() % 3;
+			switch (jogada)
+			{
+			case 0:
+				strcpy(buffer, JOGADA_PEDRA);
+				break;
+			case 1:
+				strcpy(buffer, JOGADA_PAPEL);
+				break;
+			case 2:
+				strcpy(buffer, JOGADA_TESOURA);
+				break;
+			}
 
 			printf("Client %s: jogada %s\n", name, buffer);
 			write(writefd, buffer, strlen(buffer) + 1);
 		}
+		// TODO implementar recebimento de resultado do jogo
 	}
 }
 
@@ -138,7 +157,7 @@ void server(int pipeFilho1[], int pipeFilho2[])
 
 		// TODO implementa resultado do jogo
 
-		if (rodada > 3)
+		if (rodada > 1)
 		{
 			break;
 		}
