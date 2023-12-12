@@ -6,7 +6,7 @@
 
 #define BUFFER_SIZE 1024
 #define TIPO_JOGAR "jogar"
-#define TIPO_JOGADA "resposta"
+#define TIPO_JOGADA "jogada"
 #define TIPO_RESULTADO "resultado"
 #define TIPO_SAIR "sair"
 #define JOGADA_PEDRA "pedra"
