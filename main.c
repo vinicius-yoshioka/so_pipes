@@ -28,66 +28,43 @@ void calcular_resultado(Mensagem *resposta1, Mensagem *resposta2);
 
 int main()
 {
-	int pipePaiParaFilho1[2], pipeFilho1ParaPai[2]; // Comunicação pai <-> filho 1
-	int pipePaiParaFilho2[2], pipeFilho2ParaPai[2]; // Comunicação pai <-> filho 2
-	if (pipe(pipePaiParaFilho1) < 0 || pipe(pipeFilho1ParaPai) < 0 || pipe(pipePaiParaFilho2) < 0 || pipe(pipeFilho2ParaPai) < 0)
+	int pipePaiParaFilho[2], pipeFilhoParaPai[2];
+	if (pipe(pipePaiParaFilho) < 0 || pipe(pipeFilhoParaPai) < 0)
 	{
 		printf("Erro na chamada PIPE\n");
 		exit(0);
 	}
 
-	int descritorFilho1, descritorFilho2;
-	descritorFilho1 = fork();
-	if (descritorFilho1 > 0)
-		descritorFilho2 = fork();
-	if (descritorFilho1 < 0 || descritorFilho2 < 0)
+	int descritor = fork();
+	if (descritor < 0)
 	{
 		printf("Erro na chamada FORK\n");
 		exit(0);
 	}
 
 	// Processo pai
-	if (descritorFilho1 > 0 && descritorFilho2 > 0)
+	if (descritor > 0)
 	{
-		close(pipePaiParaFilho1[0]);
-		close(pipeFilho1ParaPai[1]);
-		close(pipePaiParaFilho2[0]);
-		close(pipeFilho2ParaPai[1]);
+		close(pipePaiParaFilho[0]);
+		close(pipeFilhoParaPai[1]);
 
-		int pipeFilho1[2] = {pipeFilho1ParaPai[0], pipePaiParaFilho1[1]};
-		int pipeFilho2[2] = {pipeFilho2ParaPai[0], pipePaiParaFilho2[1]};
-		server(pipeFilho1, pipeFilho2);
+		server(pipeFilhoParaPai[0], pipePaiParaFilho[1]);
 
-		close(pipePaiParaFilho1[1]);
-		close(pipeFilho1ParaPai[0]);
-		close(pipePaiParaFilho2[1]);
-		close(pipeFilho2ParaPai[0]);
+		close(pipePaiParaFilho[1]);
+		close(pipeFilhoParaPai[0]);
 		exit(0);
 	}
 
-	// Processo filho 1
-	if (descritorFilho1 == 0)
+	// Processo filho
+	if (descritor == 0)
 	{
-		close(pipePaiParaFilho1[1]);
-		close(pipeFilho1ParaPai[0]);
+		close(pipePaiParaFilho[1]);
+		close(pipeFilhoParaPai[0]);
 
-		client("1", pipePaiParaFilho1[0], pipeFilho1ParaPai[1]);
+		client_at_process("2", pipePaiParaFilho[0], pipeFilhoParaPai[1]);
 
-		close(pipePaiParaFilho1[0]);
-		close(pipeFilho1ParaPai[1]);
-		exit(0);
-	}
-
-	// Processo filho 2
-	if (descritorFilho2 == 0)
-	{
-		close(pipePaiParaFilho2[1]);
-		close(pipeFilho2ParaPai[0]);
-
-		client("2", pipePaiParaFilho2[0], pipeFilho2ParaPai[1]);
-
-		close(pipePaiParaFilho2[0]);
-		close(pipeFilho2ParaPai[1]);
+		close(pipePaiParaFilho[0]);
+		close(pipeFilhoParaPai[1]);
 		exit(0);
 	}
 
