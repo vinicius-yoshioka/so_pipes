@@ -61,7 +61,7 @@ int main()
 		close(pipePaiParaFilho[1]);
 		close(pipeFilhoParaPai[0]);
 
-		client_at_process("2", pipePaiParaFilho[0], pipeFilhoParaPai[1]);
+		client_at_process(pipePaiParaFilho[0], pipeFilhoParaPai[1]);
 
 		close(pipePaiParaFilho[0]);
 		close(pipeFilhoParaPai[1]);
@@ -108,15 +108,15 @@ void client(char *name, int readfd, int writefd)
 		else if (strcmp(buffer.tipo, TIPO_RESULTADO) == 0)
 		{
 			if (strcmp(buffer.valor, RESULTADO_VITORIA) == 0)
-				printf("Client %s: %s\n", name, RESULTADO_VITORIA);
+				printf("Client (subprocesso): %s\n", RESULTADO_VITORIA);
 			else if (strcmp(buffer.valor, RESULTADO_DERROTA) == 0)
-				printf("Client %s: %s\n", name, RESULTADO_DERROTA);
+				printf("Client (subprocesso): %s\n", RESULTADO_DERROTA);
 			else
-				printf("Client %s: %s\n", name, RESULTADO_EMPATE);
+				printf("Client (subprocesso): %s\n", RESULTADO_EMPATE);
 		}
 		else if (strcmp(buffer.tipo, TIPO_SAIR) == 0)
 		{
-			printf("Client %s: saindo...\n", name);
+			printf("Client (subprocesso): saindo...\n");
 			exit(0);
 			break;
 		}
