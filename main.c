@@ -22,9 +22,10 @@ typedef struct _Mensagem
 	char valor[BUFFER_SIZE];
 } Mensagem;
 
-void client(char *name, int readfd, int writefd);
-void server(int pipeFilho1[], int pipeFilho2[]);
-void calcular_resultado(Mensagem *resposta1, Mensagem *resposta2);
+void server(int readfd, int writefd);
+void *client_at_thread(void *arg);
+void client_at_process(int readfd, int writefd);
+void calcular_resultado(Mensagem *buffer_client_at_thread, Mensagem *buffer_client_at_process);
 
 int main()
 {
@@ -123,112 +124,51 @@ void client(char *name, int readfd, int writefd)
 	}
 }
 
-/*
- * Executa no processo pai
- *
- * @param pipeFilho1: pipe para comunicação com o filho 1
- * @param pipeFilho2: pipe para comunicação com o filho 2
- **/
-void server(int pipeFilho1[], int pipeFilho2[])
+void calcular_resultado(Mensagem *buffer_client_at_thread, Mensagem *buffer_client_at_process)
 {
-	int readfd1 = pipeFilho1[0];
-	int writefd1 = pipeFilho1[1];
-	int readfd2 = pipeFilho2[0];
-	int writefd2 = pipeFilho2[1];
+	strcpy(buffer_client_at_thread->tipo, TIPO_RESULTADO);
+	strcpy(buffer_client_at_process->tipo, TIPO_RESULTADO);
 
-	Mensagem buffer1;
-	Mensagem buffer2;
-
-	int rodada = 1;
-	while (1)
+	if (strcmp(buffer_client_at_thread->valor, buffer_client_at_process->valor) == 0)
 	{
-		printf("Rodada: %d\n", rodada++);
-
-		strcpy(buffer1.tipo, TIPO_JOGAR);
-		strcpy(buffer1.valor, "\0");
-		printf("Server > Client 1: %s\n", buffer1.tipo);
-		write(writefd1, &buffer1, sizeof(buffer1));
-
-		strcpy(buffer2.tipo, TIPO_JOGAR);
-		strcpy(buffer2.valor, "\0");
-		printf("Server > Client 2: %s\n", buffer2.tipo);
-		write(writefd2, &buffer2, sizeof(buffer2));
-
-		read(readfd1, &buffer1, sizeof(Mensagem));
-		printf("Client 1 > Server: %s\n", buffer1.valor);
-
-		read(readfd2, &buffer2, sizeof(Mensagem));
-		printf("Client 2 > Server: %s\n", buffer2.valor);
-
-		calcular_resultado(&buffer1, &buffer2);
-
-		printf("Server > Client 1: %s\n", buffer1.valor);
-		write(writefd1, &buffer1, sizeof(buffer1));
-
-		printf("Server > Client 2: %s\n", buffer2.valor);
-		write(writefd2, &buffer2, sizeof(buffer2));
-
-		if (rodada > 5)
-		{
-			strcpy(buffer1.tipo, TIPO_SAIR);
-			strcpy(buffer1.valor, "\0");
-			printf("Server > Client 1: %s\n", buffer1.tipo);
-			write(writefd1, &buffer1, sizeof(buffer1));
-
-			strcpy(buffer2.tipo, TIPO_SAIR);
-			strcpy(buffer2.valor, "\0");
-			printf("Server > Client 2: %s\n", buffer2.tipo);
-			write(writefd2, &buffer2, sizeof(buffer2));
-			break;
-		}
-	}
-}
-
-void calcular_resultado(Mensagem *mensagem1, Mensagem *mensagem2)
-{
-	strcpy(mensagem1->tipo, TIPO_RESULTADO);
-	strcpy(mensagem2->tipo, TIPO_RESULTADO);
-
-	if (strcmp(mensagem1->valor, mensagem2->valor) == 0)
-	{
-		strcpy(mensagem1->valor, RESULTADO_EMPATE);
-		strcpy(mensagem2->valor, RESULTADO_EMPATE);
+		strcpy(buffer_client_at_thread->valor, RESULTADO_EMPATE);
+		strcpy(buffer_client_at_process->valor, RESULTADO_EMPATE);
 		printf("Server: Empate!\n");
 	}
-	else if (strcmp(mensagem1->valor, JOGADA_PEDRA) == 0 && strcmp(mensagem2->valor, JOGADA_TESOURA) == 0)
+	else if (strcmp(buffer_client_at_thread->valor, JOGADA_PEDRA) == 0 && strcmp(buffer_client_at_process->valor, JOGADA_TESOURA) == 0)
 	{
-		strcpy(mensagem1->valor, RESULTADO_VITORIA);
-		strcpy(mensagem2->valor, RESULTADO_DERROTA);
+		strcpy(buffer_client_at_thread->valor, RESULTADO_VITORIA);
+		strcpy(buffer_client_at_process->valor, RESULTADO_DERROTA);
 		printf("Server: Pedra quebra tesoura. Client 1 venceu!\n");
 	}
-	else if (strcmp(mensagem1->valor, JOGADA_TESOURA) == 0 && strcmp(mensagem2->valor, JOGADA_PEDRA) == 0)
+	else if (strcmp(buffer_client_at_thread->valor, JOGADA_TESOURA) == 0 && strcmp(buffer_client_at_process->valor, JOGADA_PEDRA) == 0)
 	{
-		strcpy(mensagem1->valor, RESULTADO_DERROTA);
-		strcpy(mensagem2->valor, RESULTADO_VITORIA);
+		strcpy(buffer_client_at_thread->valor, RESULTADO_DERROTA);
+		strcpy(buffer_client_at_process->valor, RESULTADO_VITORIA);
 		printf("Server: Pedra quebra tesoura. Client 2 venceu!\n");
 	}
-	else if (strcmp(mensagem1->valor, JOGADA_PAPEL) == 0 && strcmp(mensagem2->valor, JOGADA_PEDRA) == 0)
+	else if (strcmp(buffer_client_at_thread->valor, JOGADA_PAPEL) == 0 && strcmp(buffer_client_at_process->valor, JOGADA_PEDRA) == 0)
 	{
-		strcpy(mensagem1->valor, RESULTADO_VITORIA);
-		strcpy(mensagem2->valor, RESULTADO_DERROTA);
+		strcpy(buffer_client_at_thread->valor, RESULTADO_VITORIA);
+		strcpy(buffer_client_at_process->valor, RESULTADO_DERROTA);
 		printf("Server: Papel embrulha pedra. Client 1 venceu!\n");
 	}
-	else if (strcmp(mensagem1->valor, JOGADA_PEDRA) == 0 && strcmp(mensagem2->valor, JOGADA_PAPEL) == 0)
+	else if (strcmp(buffer_client_at_thread->valor, JOGADA_PEDRA) == 0 && strcmp(buffer_client_at_process->valor, JOGADA_PAPEL) == 0)
 	{
-		strcpy(mensagem1->valor, RESULTADO_DERROTA);
-		strcpy(mensagem2->valor, RESULTADO_VITORIA);
+		strcpy(buffer_client_at_thread->valor, RESULTADO_DERROTA);
+		strcpy(buffer_client_at_process->valor, RESULTADO_VITORIA);
 		printf("Server: Papel embrulha pedra. Client 2 venceu!\n");
 	}
-	else if (strcmp(mensagem1->valor, JOGADA_TESOURA) == 0 && strcmp(mensagem2->valor, JOGADA_PAPEL) == 0)
+	else if (strcmp(buffer_client_at_thread->valor, JOGADA_TESOURA) == 0 && strcmp(buffer_client_at_process->valor, JOGADA_PAPEL) == 0)
 	{
-		strcpy(mensagem1->valor, RESULTADO_VITORIA);
-		strcpy(mensagem2->valor, RESULTADO_DERROTA);
+		strcpy(buffer_client_at_thread->valor, RESULTADO_VITORIA);
+		strcpy(buffer_client_at_process->valor, RESULTADO_DERROTA);
 		printf("Server: Tesoura corta papel. Client 1 venceu!\n");
 	}
-	else if (strcmp(mensagem1->valor, JOGADA_PAPEL) == 0 && strcmp(mensagem2->valor, JOGADA_TESOURA) == 0)
+	else if (strcmp(buffer_client_at_thread->valor, JOGADA_PAPEL) == 0 && strcmp(buffer_client_at_process->valor, JOGADA_TESOURA) == 0)
 	{
-		strcpy(mensagem1->valor, RESULTADO_DERROTA);
-		strcpy(mensagem2->valor, RESULTADO_VITORIA);
+		strcpy(buffer_client_at_thread->valor, RESULTADO_DERROTA);
+		strcpy(buffer_client_at_process->valor, RESULTADO_VITORIA);
 		printf("Server: Tesoura corta papel. Client 2 venceu!\n");
 	}
 }
