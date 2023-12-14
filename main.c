@@ -30,56 +30,6 @@ Mensagem buffer_client_at_process;
 sem_t semaforo_thread_main;
 sem_t semaforo_thread_client;
 
-void server(int readfd, int writefd);
-void *client_at_thread(void *arg);
-void client_at_process(int readfd, int writefd);
-void calcular_resultado(Mensagem *buffer_client_at_thread, Mensagem *buffer_client_at_process);
-
-int main()
-{
-	int pipePaiParaFilho[2], pipeFilhoParaPai[2];
-	if (pipe(pipePaiParaFilho) < 0 || pipe(pipeFilhoParaPai) < 0)
-	{
-		printf("Erro na chamada PIPE\n");
-		exit(0);
-	}
-
-	int descritor = fork();
-	if (descritor < 0)
-	{
-		printf("Erro na chamada FORK\n");
-		exit(0);
-	}
-
-	// Processo pai
-	if (descritor > 0)
-	{
-		close(pipePaiParaFilho[0]);
-		close(pipeFilhoParaPai[1]);
-
-		server(pipeFilhoParaPai[0], pipePaiParaFilho[1]);
-
-		close(pipePaiParaFilho[1]);
-		close(pipeFilhoParaPai[0]);
-		exit(0);
-	}
-
-	// Processo filho
-	if (descritor == 0)
-	{
-		close(pipePaiParaFilho[1]);
-		close(pipeFilhoParaPai[0]);
-
-		client_at_process(pipePaiParaFilho[0], pipeFilhoParaPai[1]);
-
-		close(pipePaiParaFilho[0]);
-		close(pipeFilhoParaPai[1]);
-		exit(0);
-	}
-
-	return 0;
-}
-
 void server(int readfd, int writefd)
 {
 	pthread_t client_thread;
@@ -258,4 +208,49 @@ void calcular_resultado(Mensagem *buffer_client_at_thread, Mensagem *buffer_clie
 		strcpy(buffer_client_at_process->valor, RESULTADO_VITORIA);
 		printf("Server: Tesoura corta papel. Client (subprocesso) venceu!\n");
 	}
+}
+
+int main()
+{
+	int pipePaiParaFilho[2], pipeFilhoParaPai[2];
+	if (pipe(pipePaiParaFilho) < 0 || pipe(pipeFilhoParaPai) < 0)
+	{
+		printf("Erro na chamada PIPE\n");
+		exit(0);
+	}
+
+	int descritor = fork();
+	if (descritor < 0)
+	{
+		printf("Erro na chamada FORK\n");
+		exit(0);
+	}
+
+	// Processo pai
+	if (descritor > 0)
+	{
+		close(pipePaiParaFilho[0]);
+		close(pipeFilhoParaPai[1]);
+
+		server(pipeFilhoParaPai[0], pipePaiParaFilho[1]);
+
+		close(pipePaiParaFilho[1]);
+		close(pipeFilhoParaPai[0]);
+		exit(0);
+	}
+
+	// Processo filho
+	if (descritor == 0)
+	{
+		close(pipePaiParaFilho[1]);
+		close(pipeFilhoParaPai[0]);
+
+		client_at_process(pipePaiParaFilho[0], pipeFilhoParaPai[1]);
+
+		close(pipePaiParaFilho[0]);
+		close(pipeFilhoParaPai[1]);
+		exit(0);
+	}
+
+	return 0;
 }
