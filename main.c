@@ -139,36 +139,36 @@ void calcular_resultado(Mensagem *buffer_client_at_thread, Mensagem *buffer_clie
 	{
 		strcpy(buffer_client_at_thread->valor, RESULTADO_VITORIA);
 		strcpy(buffer_client_at_process->valor, RESULTADO_DERROTA);
-		printf("Server: Pedra quebra tesoura. Client 1 venceu!\n");
+		printf("Server: Pedra quebra tesoura. Client (thread) venceu!\n");
 	}
 	else if (strcmp(buffer_client_at_thread->valor, JOGADA_TESOURA) == 0 && strcmp(buffer_client_at_process->valor, JOGADA_PEDRA) == 0)
 	{
 		strcpy(buffer_client_at_thread->valor, RESULTADO_DERROTA);
 		strcpy(buffer_client_at_process->valor, RESULTADO_VITORIA);
-		printf("Server: Pedra quebra tesoura. Client 2 venceu!\n");
+		printf("Server: Pedra quebra tesoura. Client (subprocesso) venceu!\n");
 	}
 	else if (strcmp(buffer_client_at_thread->valor, JOGADA_PAPEL) == 0 && strcmp(buffer_client_at_process->valor, JOGADA_PEDRA) == 0)
 	{
 		strcpy(buffer_client_at_thread->valor, RESULTADO_VITORIA);
 		strcpy(buffer_client_at_process->valor, RESULTADO_DERROTA);
-		printf("Server: Papel embrulha pedra. Client 1 venceu!\n");
+		printf("Server: Papel embrulha pedra. Client (thread) venceu!\n");
 	}
 	else if (strcmp(buffer_client_at_thread->valor, JOGADA_PEDRA) == 0 && strcmp(buffer_client_at_process->valor, JOGADA_PAPEL) == 0)
 	{
 		strcpy(buffer_client_at_thread->valor, RESULTADO_DERROTA);
 		strcpy(buffer_client_at_process->valor, RESULTADO_VITORIA);
-		printf("Server: Papel embrulha pedra. Client 2 venceu!\n");
+		printf("Server: Papel embrulha pedra. Client (subprocesso) venceu!\n");
 	}
 	else if (strcmp(buffer_client_at_thread->valor, JOGADA_TESOURA) == 0 && strcmp(buffer_client_at_process->valor, JOGADA_PAPEL) == 0)
 	{
 		strcpy(buffer_client_at_thread->valor, RESULTADO_VITORIA);
 		strcpy(buffer_client_at_process->valor, RESULTADO_DERROTA);
-		printf("Server: Tesoura corta papel. Client 1 venceu!\n");
+		printf("Server: Tesoura corta papel. Client (thread) venceu!\n");
 	}
 	else if (strcmp(buffer_client_at_thread->valor, JOGADA_PAPEL) == 0 && strcmp(buffer_client_at_process->valor, JOGADA_TESOURA) == 0)
 	{
 		strcpy(buffer_client_at_thread->valor, RESULTADO_DERROTA);
 		strcpy(buffer_client_at_process->valor, RESULTADO_VITORIA);
-		printf("Server: Tesoura corta papel. Client 2 venceu!\n");
+		printf("Server: Tesoura corta papel. Client (subprocesso) venceu!\n");
 	}
 }
